@@ -1,4 +1,3 @@
-using System.Globalization;
 using Bogus;
 using LibrarySystem.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +6,6 @@ namespace LibrarySystem.Api.Data;
 
 public static class DbSeeder
 {
-    private const int BookCount = 1000;
     private const int UserCount = 200;
     private const int LoanCount = 500;
     private const int ActiveLoanCount = 50;
@@ -40,17 +38,20 @@ public static class DbSeeder
 
     private static List<Book> GenerateBooks()
     {
+        var faker = new Faker();
         var usedIsbns = new HashSet<string>();
 
-        var faker = new Faker<Book>()
-            .RuleFor(b => b.Id, f => Guid.NewGuid())
-            .RuleFor(b => b.Title, f => ToTitleCase(f.Lorem.Sentence(f.Random.Int(2, 5)).TrimEnd('.')))
-            .RuleFor(b => b.Author, f => f.Name.FullName())
-            .RuleFor(b => b.ISBN, f => UniqueValue(usedIsbns, () => f.Commerce.Ean13()))
-            .RuleFor(b => b.PublishedYear, f => f.Random.Int(1950, 2024))
-            .RuleFor(b => b.IsAvailable, _ => true);
-
-        return faker.Generate(BookCount);
+        return ClassicBooksCatalog.Books
+            .Select(b => new Book
+            {
+                Id = Guid.NewGuid(),
+                Title = b.Title,
+                Author = b.Author,
+                ISBN = UniqueValue(usedIsbns, () => faker.Commerce.Ean13()),
+                PublishedYear = b.PublishedYear,
+                IsAvailable = true,
+            })
+            .ToList();
     }
 
     private static List<User> GenerateUsers()
@@ -114,7 +115,4 @@ public static class DbSeeder
 
         return value;
     }
-
-    private static string ToTitleCase(string value) =>
-        CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value);
 }
