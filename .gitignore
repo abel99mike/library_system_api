@@ -55,3 +55,8 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# SQLite runtime database (generated at runtime, not source-controlled)
+*.db
+*.db-shm
+*.db-wal
